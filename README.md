@@ -1,8 +1,14 @@
-# NodeMCU Pinout
+# Pinouts
 
-![pinout](https://i2.wp.com/randomnerdtutorials.com/wp-content/uploads/2019/05/ESP8266-NodeMCU-kit-12-E-pinout-gpio-pin.png?quality=100&strip=all&ssl=1)
+## NODEMCU
+
+![pinout nodemcu](https://i2.wp.com/randomnerdtutorials.com/wp-content/uploads/2019/05/ESP8266-NodeMCU-kit-12-E-pinout-gpio-pin.png?quality=100&strip=all&ssl=1)
 
 ![table pinout](docs/NodeMCU_table_pinout.png)
+
+## ARDUINO NANO
+
+![pinout nano](docs/nano_pinout.png)
 
 # Arduino Client
 
