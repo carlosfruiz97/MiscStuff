@@ -80,6 +80,9 @@ arduino-cli core install arduino:avr
 ### Instalar Librerias
 
 ```bash
+# Librerias instaladas
+arduino-cli lib list [LIBNAME]
+
 # Ejemplo Buscar
 arduino-cli lib search PubSubClient
 ```
