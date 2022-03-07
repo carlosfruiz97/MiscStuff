@@ -29,8 +29,8 @@ char keys[ROWS][COLS] = {
   { '*', '0', '#' }
 };
 
-byte rowPins[ROWS] = { 5, 4, 3, 2 }; //connect to the row pinouts of the keypad
-byte colPins[COLS] = { 8, 7, 6 };    //connect to the column pinouts of the keypad
+byte rowPins[ROWS] = { 8,7,6,5 }; //connect to the row pinouts of the keypad
+byte colPins[COLS] = { 4,3,2 };    //connect to the column pinouts of the keypad
 
 //initialize an instance of class NewKeypad
 Adafruit_Keypad customKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);

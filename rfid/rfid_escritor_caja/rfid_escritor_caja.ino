@@ -33,6 +33,8 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <Adafruit_Keypad.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
 // ==== KEYPAD ===================================================
 const byte ROWS = 4; // rows
@@ -56,6 +58,9 @@ Adafruit_Keypad customKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPin
 #define USING_ULTRALIGHT    1
 MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance
 #include "MFRC522_interface.h"
+
+// ==== LCD ======================================================
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ==== STATE ====================================================
 enum Estado_t
@@ -96,7 +101,12 @@ void setup()
   // -- keypad begin --
   customKeypad.begin();
 
-  print_to_screen("1:Mostrar Id  2:Leer  3:Escribir");
+  // -- lcd begin --
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+
+  cancel_key();
 }
 
 
@@ -162,7 +172,15 @@ void loop()
 void cancel_key()
 {
   estado = start;
-  print_to_screen("1:Mostrar Id  2:Leer  3:Escribir");
+  // Reset
+  string_count        = 0;
+  input_string_buffer = "000";
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("1:Id 2:Leer");
+  lcd.setCursor(0, 1);
+  lcd.print("3:Escribir");
 }
 
 
@@ -182,17 +200,25 @@ void update_start()
       break;
 
     case '1':
-      print_to_screen("Mostrar ID. Pasar Tarjeta: ");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Mostrar ID");
+      lcd.setCursor(0, 1);
+      lcd.print("Pasar Tarjeta...");
       estado = wait_ID;
       break;
 
     case '2':
-      print_to_screen("Leyendo. Seleccionar fila y apretar #:");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("R fila: ");
       estado = read_select_row;
       break;
 
     case '3':
-      print_to_screen("Escribiendo. Seleccionar fila y apretar #:");
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("W fila: ");
       estado = write_select_row;
       break;
     }
@@ -215,9 +241,22 @@ void update_wait_ID()
   }
 
   MFRC522::Uid foundUid;
-  if (GetUid(foundUid))
+  if (DumpPiccInfo())
   {
-    print_to_screen("ID: ");
+    foundUid = mfrc522.uid;
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Mostrar ID");
+    lcd.setCursor(0, 1);
+
+    for (byte i = 0; i < foundUid.size; i++)
+    {
+      lcd.print(String(foundUid.uidByte[i] < 0x10 ? " 0" : " "));
+      lcd.print(String(foundUid.uidByte[i], HEX));
+    }
+
+    LOG("ID: ");
     printUid(foundUid);
   }
 }
@@ -239,8 +278,11 @@ void update_read_select_row()
     LOG("Row:  ");
     LOGN(selected_row);
     estado = read_select_col;
-    print_to_screen("Leyendo. Seleccionar columna y apretar #:");
 
+    lcd.setCursor(0, 0);
+    lcd.print("R col:       ");
+    lcd.setCursor(0, 1);
+    lcd.print(selected_row);
     break;
   }
 }
@@ -262,7 +304,13 @@ void update_read_select_col()
     LOGN(selected_col);
     estado = wait_read;
 
-    print_to_screen("Leyendo. Pasar Tarjeta");
+    lcd.setCursor(0, 0);
+    lcd.print("R pasar tarjeta ");
+    lcd.setCursor(0, 1);
+    lcd.print(selected_row);
+    lcd.print(" ");
+    lcd.print(selected_col);
+
     break;
   }
 }
@@ -289,7 +337,17 @@ void update_wait_read()
     LOG(",");
     LOG("]  value: ");
     LOGN(result);
-    delay(500);
+
+    lcd.setCursor(0, 0);
+    lcd.print("R pasar tarjeta ");
+    lcd.setCursor(0, 1);
+    lcd.print(selected_row);
+    lcd.print(" ");
+    lcd.print(selected_col);
+    lcd.print(" : ");
+    lcd.print(result);
+
+    delay(700);
   }
 }
 
@@ -310,7 +368,11 @@ void update_write_select_row()
     LOG("Row:  ");
     LOGN(selected_row);
     estado = write_select_col;
-    print_to_screen("Escribiendo. Seleccionar columna y apretar #:");
+
+    lcd.setCursor(0, 0);
+    lcd.print("W col:       ");
+    lcd.setCursor(0, 1);
+    lcd.print(selected_row);
 
     break;
   }
@@ -333,7 +395,12 @@ void update_write_select_col()
     LOGN(selected_col);
     estado = write_select_val;
 
-    print_to_screen("Escribiendo. Seleccionar Valor y apretar #");
+    lcd.setCursor(0, 0);
+    lcd.print("W val:       ");
+    lcd.setCursor(0, 1);
+    lcd.print(selected_row);
+    lcd.print(" ");
+    lcd.print(selected_col);
     break;
   }
 }
@@ -355,7 +422,15 @@ void update_write_select_val()
     LOGN(selected_val);
     estado = wait_write;
 
-    print_to_screen("Escribiendo. Pasar Tarjeta");
+    // print_to_screen("Escribiendo. Pasar Tarjeta");
+    lcd.setCursor(0, 0);
+    lcd.print("W pasar tarjeta ");
+    lcd.setCursor(0, 1);
+    lcd.print(selected_row);
+    lcd.print(" ");
+    lcd.print(selected_col);
+    lcd.print(" : ");
+    lcd.print(selected_val);
     break;
   }
 }
@@ -381,7 +456,13 @@ void update_wait_write()
     LOG(",");
     LOG("]  value: ");
     LOGN(selected_val);
-    delay(500);
+
+    lcd.setCursor(14, 1);
+    lcd.print("OK");
+
+    delay(700);
+    lcd.setCursor(14, 1);
+    lcd.print("  ");
   }
 }
 
@@ -396,6 +477,9 @@ buffer_return_t update_keypad_buffer(uint8_t& numeric_value)
 
   if (get_keypad_key(pressed_key))
   {
+    // Update LCD :
+    lcd.setCursor(10 + string_count, 0);
+    lcd.print(pressed_key);
     if (pressed_key == '#')
     {
       // Confirm
