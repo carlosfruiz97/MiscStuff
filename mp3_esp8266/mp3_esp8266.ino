@@ -32,14 +32,21 @@
 // ==== WIFI  ====================================================
 #include "index_html.h"
 #define TIMEOUT_WIFI    30000 //ms
+
 const char *ssid     = "CanCarlitos2";
 const char *password = "6162909297";
+
+IPAddress local_IP(192, 168, 1, 45);
+IPAddress gateway(192, 168, 1, 1);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress primaryDNS(8, 8, 8, 8);   //optional
+IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 ESP8266WebServer server(80);
 
 // ==== MP3 ======================================================
-#define SS_RX    D2
-#define SS_TX    D3
+#define SS_RX    D1
+#define SS_TX    D2
 SoftwareSerial      mySoftwareSerial(SS_RX, SS_TX); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
 
@@ -68,23 +75,15 @@ void setup()
 #endif
 
   ///////////
+  // Spftware Serial for DFPLAYER
+  mySoftwareSerial.begin(9600);
+
+  ///////////
   // Leds
   pinMode(PIN_LEDS, OUTPUT);
   setLed(false);
 
-  ///////////////
-  // myDFPlayer
-  mySoftwareSerial.begin(9600);
-  if (!myDFPlayer.begin(mySoftwareSerial))    //Use softwareSerial to communicate with mp3.
-  {
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-  }
-  else
-  {
-    Serial.println(F("DFPlayer Mini online."));
-  }
+
 
   //////////////
   // -- WiFi --
@@ -100,6 +99,22 @@ void setup()
   server.onNotFound(handleNotFound);
 
   server.begin();
+
+
+
+  ///////////////
+  // myDFPlayer
+  delay(50);
+  if (!myDFPlayer.begin(mySoftwareSerial))    //Use softwareSerial to communicate with mp3.
+  {
+    Serial.println(F("Unable to begin:"));
+    Serial.println(F("1.Please recheck the connection!"));
+    Serial.println(F("2.Please insert the SD card!"));
+  }
+  else
+  {
+    Serial.println(F("DFPlayer Mini online."));
+  }
 }
 
 
@@ -109,6 +124,10 @@ void setup_wifi()
   LOGN(ssid);
 
   WiFi.mode(WIFI_STA);
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  {
+    LOGN("STA FAILED TO CONFIGURE");
+  }
   WiFi.begin(ssid, password);
 
   unsigned long tstart = millis();
@@ -267,15 +286,19 @@ void printmyDFPlayerDetail(uint8_t type, int value)
 // --- on reload ---
 void handleRoot()
 {
-  server.send(200, "text/plain", html_string);
+  server.send(200, "text/html", html_string);
 }
 
 
 // On play song command handler
 void handlePlay()
 {
+  server.send(200, "text/html", html_string);
+
   //   192.168.1.40/play?pista=2&vol=30
   uint8_t vol, pista;
+
+  LOGN("Play");
 
   if (server.arg("pista") == "")
   {
@@ -290,7 +313,7 @@ void handlePlay()
 
   if (server.arg("vol") == "")
   {
-    vol = 25;
+    vol = 15;
     LOGN("No hay parametro de volumen!");
   }
   else
@@ -311,8 +334,10 @@ void handlePlay()
 void handleStop()
 {
   // Stop!
+  server.send(200, "text/html", html_string);
   setLed(false);
   myDFPlayer.pause();  //pause the mp3
+  LOGN("Stop");
 }
 
 
@@ -332,5 +357,8 @@ void handleNotFound()
   {
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
-  server.send(404, "text/plain", message);
+  // server.send(404, "text/plain", message);
+  server.send(200, "text/html", html_string);
+  LOGN("Request not found");
+  LOGN(message);
 }
