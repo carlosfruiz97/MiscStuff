@@ -1,9 +1,9 @@
 /*
- CONTROLAR MP3 con nodmecu y web
+  CONTROLAR MP3 con nodmecu y web
 
- //play specific mp3 in SD:/MP3/0004.mp3; File Name(0~65535)
- 192.168.1.40/play?pista=2&vol=30
- 192.168.1.40/stop
+  //play specific mp3 in SD:/MP3/0004.mp3; File Name(0~65535)
+  192.168.1.40/play?pista=2&vol=30
+  192.168.1.40/stop
 
 */
 
@@ -53,14 +53,14 @@ void setup()
 {
   ///////////////////////
   // -- Serial --
-  #if DEBUG == 1
-    Serial.begin(115200);
-    while (!Serial) {
-      ;
-    }
-    delay(50);
-    LOGN("\n\n---------------\n  EMPEZAMOS");
-  #endif
+#if DEBUG == 1
+  Serial.begin(115200);
+  while (!Serial) {
+    ;
+  }
+  delay(50);
+  LOGN("\n\n---------------\n  EMPEZAMOS");
+#endif
 
   ///////////
   // Leds
@@ -155,7 +155,7 @@ void handleDFPlayer()
   int value = myDFPlayer.read();
 
   // handle cases we care about!
-  switch(type)
+  switch (type)
   {
     // FINISHED PLAYING !!
     case DFPlayerPlayFinished:
@@ -167,16 +167,16 @@ void handleDFPlayer()
   }
 
   // Print State!
-  #if DEBUG == 1
+#if DEBUG == 1
   printmyDFPlayerDetail(type, value);
 
-  #endif
+#endif
 }
 
 
 ///////////////////////////////////////////////////////
 // print details of MP3
-void printmyDFPlayerDetail(uint8_t type, int value){
+void printmyDFPlayerDetail(uint8_t type, int value) {
   Serial.print("myMp3:   ");
   switch (type) {
     case TimeOut:
@@ -238,9 +238,7 @@ void printmyDFPlayerDetail(uint8_t type, int value){
 // ===============================================================
 // --- on reload ---
 void handleRoot() {
-  digitalWrite(led, 1);
   server.send(200, "text/plain", html_string);
-  digitalWrite(led, 0);
 }
 
 
@@ -280,13 +278,12 @@ void handleStop()
 {
   // Stop!
   setLed(false);
-  myDFPlayer.pause();  //pause the mp3  
+  myDFPlayer.pause();  //pause the mp3
 }
 
 
 // --- on handle not found ---
 void handleNotFound() {
-  digitalWrite(led, 1);
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -295,7 +292,8 @@ void handleNotFound() {
   message += "\nArguments: ";
   message += server.args();
   message += "\n";
-  for (uint8_t i = 0; i < server.args(); i++) { message += " " + server.argName(i) + ": " + server.arg(i) + "\n"; }
+  for (uint8_t i = 0; i < server.args(); i++) {
+    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+  }
   server.send(404, "text/plain", message);
-  digitalWrite(led, 0);
 }
