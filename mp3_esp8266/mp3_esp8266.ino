@@ -267,9 +267,7 @@ void printmyDFPlayerDetail(uint8_t type, int value)
 // --- on reload ---
 void handleRoot()
 {
-  digitalWrite(led, 1);
   server.send(200, "text/plain", html_string);
-  digitalWrite(led, 0);
 }
 
 
@@ -321,8 +319,8 @@ void handleStop()
 // --- on handle not found ---
 void handleNotFound()
 {
-  digitalWrite(led, 1);
   String message = "File Not Found\n\n";
+
   message += "URI: ";
   message += server.uri();
   message += "\nMethod: ";
@@ -335,5 +333,4 @@ void handleNotFound()
     message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
   }
   server.send(404, "text/plain", message);
-  digitalWrite(led, 0);
 }
