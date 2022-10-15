@@ -14,5 +14,5 @@ Codiog para ejecutar un modulo mp3 con un esp8266 (Nodemcu) desde una pagina web
 # Using args
 
 ```
-  192.168.1.40/play?pista=2&vol=30
+  192.168.1.45/play?pista=2&vol=30
 ```
