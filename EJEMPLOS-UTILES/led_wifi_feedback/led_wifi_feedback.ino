@@ -19,6 +19,7 @@
 #define LOGSN(s, x)
 #define LOGS(s, x)
 #define LOGSX(s, x)
+#deinfe PRINTF(s, ...)
 #endif
 
 /************************************************

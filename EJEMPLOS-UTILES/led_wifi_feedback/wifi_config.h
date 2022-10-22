@@ -2,14 +2,19 @@
 #define TIMEOUT_WIFI    60000 //ms
 #define DEBUG_LED_ON    1   // Se enciende el LED_BUILTIN
 
+/* Controlar manualmente la desconexion del wifi */
+WiFiEventHandler wifiDisconnectHandler;
+WiFiEventHandler wifiConnectHandler;
+void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) ;
+void onWifiConnect(const WiFiEventStationModeGotIP& event);
 
 /************************************************
     WiFi Config
  ***********************************************/
 //const char *ssid     = "ELLEBANNA";
 //const char *password = "666LasMonjas";
-const char *ssid     = "CanCarlitos2";
-const char *password = "6162909297";
+const char *ssid     = "iPhone de Carlos";
+const char *password = "marpalcar";
 
 const char *otaaHostName = "LedWifi";
 
@@ -29,11 +34,15 @@ void setup_wifi()
   LOG("Connecting to ");
   LOGN(ssid);
 
+  wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
+  wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
+
+
   WiFi.mode(WIFI_STA);
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
-  {
-    LOGN("STA FAILED TO CONFIGURE");
-  }
+  //  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  //  {
+  //    LOGN("STA FAILED TO CONFIGURE");
+  //  }
   WiFi.begin(ssid, password);
 
 #if DEBUG_LED_ON == 1
@@ -66,7 +75,29 @@ void setup_wifi()
   LOGN("IP address: ");
   LOGN(WiFi.localIP());
 
-  PRINTF("Test print f %d, %d\r\n", 1, 2);
+  /* Reconectar Automaticamente si falla! */
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+}
+
+
+/************************************************
+    @brief  Funcion llamada al desconectar reconectar
+ ***********************************************/
+void onWifiConnect(const WiFiEventStationModeGotIP& event)
+{
+  LOGN("Reconected!");
+}
+
+
+void onWifiDisconnect(const WiFiEventStationModeDisconnected& event)
+{
+  LOGN("Disconnected from Wi-Fi, trying to connect...");
+  //  WiFi.disconnect();
+  //  WiFi.begin(ssid, password);
+  //  delay(1000);
+  //  LOGN("Retry Conecting...");
+  //  setup_wifi();
 }
 
 
@@ -101,17 +132,17 @@ void setup_otaa()
   });
 
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
+    PRINTF("Error[%u]: ", error);
     if (error == OTA_AUTH_ERROR) {
-      Serial.println("Auth Failed");
+      LOGN("Auth Failed");
     } else if (error == OTA_BEGIN_ERROR) {
-      Serial.println("Begin Failed");
+      LOGN("Begin Failed");
     } else if (error == OTA_CONNECT_ERROR) {
-      Serial.println("Connect Failed");
+      LOGN("Connect Failed");
     } else if (error == OTA_RECEIVE_ERROR) {
-      Serial.println("Receive Failed");
+      LOGN("Receive Failed");
     } else if (error == OTA_END_ERROR) {
-      Serial.println("End Failed");
+      LOGN("End Failed");
     }
   });
 
