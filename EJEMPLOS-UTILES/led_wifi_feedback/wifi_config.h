@@ -8,8 +8,10 @@
  ***********************************************/
 //const char *ssid     = "ELLEBANNA";
 //const char *password = "666LasMonjas";
- const char *ssid     = "CanCarlitos2";
- const char *password = "6162909297";
+const char *ssid     = "CanCarlitos2";
+const char *password = "6162909297";
+
+const char *otaaHostName = "LedWifi";
 
 IPAddress local_IP(192, 168, 1, 105);
 IPAddress gateway(192, 168, 1, 1);
@@ -20,7 +22,7 @@ IPAddress secondaryDNS(8, 8, 4, 4); //optional
 ESP8266WebServer server(80);
 
 /************************************************
-    Iniciar WiFi
+    @brief  Iniciar WiFi
  ***********************************************/
 void setup_wifi()
 {
@@ -38,7 +40,7 @@ void setup_wifi()
   pinMode(LED_BUILTIN, OUTPUT);
 #endif
 
-  unsigned long tstart = millis();
+  uint32_t tstart = millis();
   while (WiFi.status() != WL_CONNECTED)
   {
 #if DEBUG_LED_ON == 1
@@ -63,7 +65,59 @@ void setup_wifi()
   LOGN("WiFi connected");
   LOGN("IP address: ");
   LOGN(WiFi.localIP());
+
+  PRINTF("Test print f %d, %d\r\n", 1, 2);
 }
+
+
+/************************************************
+    @brief  Iniciar OTAA
+ ***********************************************/
+void setup_otaa()
+{
+  // Hostname defaults to esp8266-[ChipID]
+  ArduinoOTA.setHostname(otaaHostName);
+
+
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_FS
+      type = "filesystem";
+    }
+
+    // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+    LOGN("Start updating " + type);
+  });
+
+  ArduinoOTA.onEnd([]() {
+    LOGN("\nEnd");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    //    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    PRINTF("Progress: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End Failed");
+    }
+  });
+
+  ArduinoOTA.begin();
+}
+
 
 /************************************************
     HTML STRING
