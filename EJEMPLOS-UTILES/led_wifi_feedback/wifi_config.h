@@ -1,15 +1,10 @@
-
 #define TIMEOUT_WIFI    60000 //ms
-#define DEBUG_LED_ON    1   // Se enciende el LED_BUILTIN
+#define DEBUG_LED_ON    1     // Se enciende el LED_BUILTIN
 
-/* Controlar manualmente la desconexion del wifi */
-WiFiEventHandler wifiDisconnectHandler;
-WiFiEventHandler wifiConnectHandler;
-void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) ;
-void onWifiConnect(const WiFiEventStationModeGotIP& event);
+
 
 /************************************************
-    WiFi Config
+ *  WiFi Config
  ***********************************************/
 //const char *ssid     = "ELLEBANNA";
 //const char *password = "666LasMonjas";
@@ -26,15 +21,21 @@ IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 ESP8266WebServer server(80);
 
+/* Controlar manualmente la desconexion del wifi */
+WiFiEventHandler wifiDisconnectHandler;
+WiFiEventHandler wifiConnectHandler;
+void onWifiDisconnect(const WiFiEventStationModeDisconnected& event);
+void onWifiConnect(const WiFiEventStationModeGotIP& event);
+
 /************************************************
-    @brief  Iniciar WiFi
+ *  @brief  Iniciar WiFi
  ***********************************************/
 void setup_wifi()
 {
   LOG("Connecting to ");
   LOGN(ssid);
 
-  wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
+  wifiConnectHandler    = WiFi.onStationModeGotIP(onWifiConnect);
   wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
 
 
@@ -82,7 +83,7 @@ void setup_wifi()
 
 
 /************************************************
-    @brief  Funcion llamada al desconectar reconectar
+ *  @brief  Funcion llamada al desconectar reconectar
  ***********************************************/
 void onWifiConnect(const WiFiEventStationModeGotIP& event)
 {
@@ -102,7 +103,7 @@ void onWifiDisconnect(const WiFiEventStationModeDisconnected& event)
 
 
 /************************************************
-    @brief  Iniciar OTAA
+ *  @brief  Iniciar OTAA
  ***********************************************/
 void setup_otaa()
 {
@@ -110,11 +111,14 @@ void setup_otaa()
   ArduinoOTA.setHostname(otaaHostName);
 
 
-  ArduinoOTA.onStart([]() {
+  ArduinoOTA.onStart([] () {
     String type;
-    if (ArduinoOTA.getCommand() == U_FLASH) {
+    if (ArduinoOTA.getCommand() == U_FLASH)
+    {
       type = "sketch";
-    } else { // U_FS
+    }
+    else     // U_FS
+    {
       type = "filesystem";
     }
 
@@ -122,26 +126,35 @@ void setup_otaa()
     LOGN("Start updating " + type);
   });
 
-  ArduinoOTA.onEnd([]() {
+  ArduinoOTA.onEnd([] () {
     LOGN("\nEnd");
   });
 
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+  ArduinoOTA.onProgress([] (unsigned int progress, unsigned int total) {
     //    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
     PRINTF("Progress: %u%%\r", (progress / (total / 100)));
   });
 
-  ArduinoOTA.onError([](ota_error_t error) {
+  ArduinoOTA.onError([] (ota_error_t error) {
     PRINTF("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) {
+    if (error == OTA_AUTH_ERROR)
+    {
       LOGN("Auth Failed");
-    } else if (error == OTA_BEGIN_ERROR) {
+    }
+    else if (error == OTA_BEGIN_ERROR)
+    {
       LOGN("Begin Failed");
-    } else if (error == OTA_CONNECT_ERROR) {
+    }
+    else if (error == OTA_CONNECT_ERROR)
+    {
       LOGN("Connect Failed");
-    } else if (error == OTA_RECEIVE_ERROR) {
+    }
+    else if (error == OTA_RECEIVE_ERROR)
+    {
       LOGN("Receive Failed");
-    } else if (error == OTA_END_ERROR) {
+    }
+    else if (error == OTA_END_ERROR)
+    {
       LOGN("End Failed");
     }
   });
@@ -151,7 +164,7 @@ void setup_otaa()
 
 
 /************************************************
-    HTML STRING
+ *  HTML STRING
  ***********************************************/
 const char html_string[] PROGMEM = R"=====(
 <html>
