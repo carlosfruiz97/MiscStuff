@@ -2,14 +2,21 @@
 #define TIMEOUT_WIFI    60000 //ms
 #define DEBUG_LED_ON    1   // Se enciende el LED_BUILTIN
 
+/* Controlar manualmente la desconexion del wifi */
+WiFiEventHandler wifiDisconnectHandler;
+WiFiEventHandler wifiConnectHandler;
+void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) ;
+void onWifiConnect(const WiFiEventStationModeGotIP& event);
 
 /************************************************
     WiFi Config
  ***********************************************/
 //const char *ssid     = "ELLEBANNA";
 //const char *password = "666LasMonjas";
- const char *ssid     = "CanCarlitos2";
- const char *password = "6162909297";
+const char *ssid     = "iPhone de Carlos";
+const char *password = "marpalcar";
+
+const char *otaaHostName = "LedWifi";
 
 IPAddress local_IP(192, 168, 1, 105);
 IPAddress gateway(192, 168, 1, 1);
@@ -20,25 +27,29 @@ IPAddress secondaryDNS(8, 8, 4, 4); //optional
 ESP8266WebServer server(80);
 
 /************************************************
-    Iniciar WiFi
+    @brief  Iniciar WiFi
  ***********************************************/
 void setup_wifi()
 {
   LOG("Connecting to ");
   LOGN(ssid);
 
+  wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
+  wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
+
+
   WiFi.mode(WIFI_STA);
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
-  {
-    LOGN("STA FAILED TO CONFIGURE");
-  }
+  //  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  //  {
+  //    LOGN("STA FAILED TO CONFIGURE");
+  //  }
   WiFi.begin(ssid, password);
 
 #if DEBUG_LED_ON == 1
   pinMode(LED_BUILTIN, OUTPUT);
 #endif
 
-  unsigned long tstart = millis();
+  uint32_t tstart = millis();
   while (WiFi.status() != WL_CONNECTED)
   {
 #if DEBUG_LED_ON == 1
@@ -63,7 +74,81 @@ void setup_wifi()
   LOGN("WiFi connected");
   LOGN("IP address: ");
   LOGN(WiFi.localIP());
+
+  /* Reconectar Automaticamente si falla! */
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
 }
+
+
+/************************************************
+    @brief  Funcion llamada al desconectar reconectar
+ ***********************************************/
+void onWifiConnect(const WiFiEventStationModeGotIP& event)
+{
+  LOGN("Reconected!");
+}
+
+
+void onWifiDisconnect(const WiFiEventStationModeDisconnected& event)
+{
+  LOGN("Disconnected from Wi-Fi, trying to connect...");
+  //  WiFi.disconnect();
+  //  WiFi.begin(ssid, password);
+  //  delay(1000);
+  //  LOGN("Retry Conecting...");
+  //  setup_wifi();
+}
+
+
+/************************************************
+    @brief  Iniciar OTAA
+ ***********************************************/
+void setup_otaa()
+{
+  // Hostname defaults to esp8266-[ChipID]
+  ArduinoOTA.setHostname(otaaHostName);
+
+
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_FS
+      type = "filesystem";
+    }
+
+    // NOTE: if updating FS this would be the place to unmount FS using FS.end()
+    LOGN("Start updating " + type);
+  });
+
+  ArduinoOTA.onEnd([]() {
+    LOGN("\nEnd");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    //    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    PRINTF("Progress: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    PRINTF("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      LOGN("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      LOGN("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      LOGN("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      LOGN("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      LOGN("End Failed");
+    }
+  });
+
+  ArduinoOTA.begin();
+}
+
 
 /************************************************
     HTML STRING

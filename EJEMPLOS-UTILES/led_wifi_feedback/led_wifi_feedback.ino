@@ -11,6 +11,7 @@
 #define LOGSN(s, x)    { Serial.print(F(s)); Serial.print(" "); Serial.println(x); }
 #define LOGS(s, x)     { Serial.print(F(s)); Serial.print(" "); Serial.print(x); }
 #define LOGSX(s, x)    { Serial.print(F(s)); Serial.print(" "); Serial.print(x, HEX); }
+#define PRINTF(s, ...) { Serial.printf(s,__VA_ARGS__); }
 #else
 #define LOG(x)
 #define LOGN(x)
@@ -18,6 +19,7 @@
 #define LOGSN(s, x)
 #define LOGS(s, x)
 #define LOGSX(s, x)
+#deinfe PRINTF(s, ...)
 #endif
 
 /************************************************
@@ -27,6 +29,9 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
 
 /************************************************
@@ -65,6 +70,7 @@ void setup()
   //////////////////////////
   // Setup Wifi and server
   setup_wifi();
+  setup_otaa();
   setup_server();
 
   /////////////
@@ -81,6 +87,7 @@ void setup()
 void loop()
 {
   server.handleClient();
+  ArduinoOTA.handle();
 }
 
 /************************************************
