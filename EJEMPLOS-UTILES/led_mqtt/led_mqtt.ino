@@ -23,6 +23,7 @@
 #define PRINTF(s, ...)    { Serial.printf(s, __VA_ARGS__); }
 #define LOGF(s)           Serial.print(F(s))
 #define LOGFN(s)          Serial.println(F(s))
+#define PRINTF(s, ...)    { Serial.printf(s, __VA_ARGS__); }
 #else
 #define LOG(x)
 #define LOGN(x)
@@ -59,7 +60,7 @@
  ***********************************************/
 typedef struct estado_s
 {
-  bool led;
+  uint8_t led;
 } estado_t;
 estado_t estado;
 
