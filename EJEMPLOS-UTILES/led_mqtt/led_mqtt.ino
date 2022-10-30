@@ -31,7 +31,7 @@
 #define LOGSN(s, x)
 #define LOGS(s, x)
 #define LOGSX(s, x)
-#deinfe PRINTF(s, ...)
+#define PRINTF(s, ...)
 #define LOGF(s)
 #define LOGFN(s)
 #endif
