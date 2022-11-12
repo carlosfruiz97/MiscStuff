@@ -10,6 +10,7 @@
  *
  *     arduino-cli monitor -p /dev/ttyUSB0
  *
+ * cmpUpldEsp.sh -f mp3Serial_esp8266.ino
  ******************************************************************************/
 #define DEBUG    1
 #if DEBUG == 1
@@ -95,6 +96,7 @@ void setup()
   {
     SS_arry[ns]->begin(MD_YX5300::SERIAL_BPS);
     mp3Arry[ns]->begin();
+    mp3Arry[ns]->equalizer(2);
     mp3Arry[ns]->setSynchronous(true);
     mp3Arry[ns]->setCallback(cbRespArry[ns]);
   }
