@@ -1,17 +1,29 @@
+/*******************************************************************************
+ *  Titulo: Controlar un led con Wifi
+ * Placa: Nodmecu
+ *
+ * cmpUpldEsp.sh -f led_wifi_feedback.ino
+ *
+ * Subir Codigo:
+ *     arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 led_wifi_feedback.ino
+ *     arduino-cli upload -p /dev/ttyUSB0 --fqbn esp8266:esp8266:nodemcuv2 led_wifi_feedback.ino
+ *
+ *     arduino-cli monitor -p /dev/ttyUSB0
+ *
+ ******************************************************************************/
 
-/************************************************
-    Controlar un led con Wifi y Secuencia botones
- ***********************************************/
 
 #define DEBUG    1
 #if DEBUG == 1
-#define LOGN(x)        Serial.println(x)
-#define LOG(x)         Serial.print(x)
-#define LOGX(x)        Serial.print(x, HEX);
-#define LOGSN(s, x)    { Serial.print(F(s)); Serial.print(" "); Serial.println(x); }
-#define LOGS(s, x)     { Serial.print(F(s)); Serial.print(" "); Serial.print(x); }
-#define LOGSX(s, x)    { Serial.print(F(s)); Serial.print(" "); Serial.print(x, HEX); }
-#define PRINTF(s, ...) { Serial.printf(s,__VA_ARGS__); }
+#define LOGN(x)           Serial.println(x)
+#define LOG(x)            Serial.print(x)
+#define LOGX(x)           Serial.print(x, HEX);
+#define LOGSN(s, x)       { Serial.print(F(s)); Serial.print(" "); Serial.println(x); }
+#define LOGS(s, x)        { Serial.print(F(s)); Serial.print(" "); Serial.print(x); }
+#define LOGSX(s, x)       { Serial.print(F(s)); Serial.print(" "); Serial.print(x, HEX); }
+#define LOGF(s)           Serial.print(F(s))
+#define LOGFN(s)          Serial.println(F(s))
+#define PRINTF(s, ...)    Serial.printf(PSTR(s), __VA_ARGS__)
 #else
 #define LOG(x)
 #define LOGN(x)
@@ -19,11 +31,13 @@
 #define LOGSN(s, x)
 #define LOGS(s, x)
 #define LOGSX(s, x)
-#deinfe PRINTF(s, ...)
+#define LOGF(s)
+#define LOGFN(s)
+#define PRINTF(s, ...)
 #endif
 
 /************************************************
-    Librerias Externas
+ *  Librerias Externas
  ***********************************************/
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -35,25 +49,25 @@
 
 
 /************************************************
-    WiFi Init
+ *  WiFi Init
  ***********************************************/
 #include "wifi_config.h"
 
 
 /************************************************
-    GPIO
+ *  GPIO
  ***********************************************/
-#define PIN_LED  LED_BUILTIN
+#define PIN_LED       LED_BUILTIN
 bool estado_led = false;
-#define ACTIVE_LED   LOW
+#define ACTIVE_LED    LOW
 void setLed(bool nuevo_estado);
 
 /************************************************
-    Botones
+ *  Botones
  ***********************************************/
 
 /************************************************
-   @brief Setup
+ * @brief Setup
  ***********************************************/
 void setup()
 {
@@ -62,13 +76,15 @@ void setup()
 #if DEBUG == 1
   Serial.begin(9600);
   while (!Serial)
-  {  }
+  {
+  }
   delay(50);
   LOGN("\n\n---------------\n  EMPEZAMOS");
 #endif
 
   //////////////////////////
   // Setup Wifi and server
+  scan_select_wifi();
   setup_wifi();
   setup_otaa();
   setup_server();
@@ -77,12 +93,11 @@ void setup()
   // Led Init
   pinMode(PIN_LED, OUTPUT);
   setLed(false);
-
-
 }
 
+
 /************************************************
-   @brief Loop
+ * @brief Loop
  ***********************************************/
 void loop()
 {
@@ -90,8 +105,9 @@ void loop()
   ArduinoOTA.handle();
 }
 
+
 /************************************************
-   @brief Setup WebServer with callbacks
+ * @brief Setup WebServer with callbacks
  ***********************************************/
 void setup_server()
 {
@@ -102,8 +118,9 @@ void setup_server()
   server.begin();
 }
 
+
 /************************************************
-   @brief ServerCB  OnRoot
+ * @brief ServerCB  OnRoot
  ***********************************************/
 void handleRoot()
 {
@@ -111,8 +128,9 @@ void handleRoot()
   LOGN("\n[server] Handle Root");
 }
 
+
 /************************************************
-   @brief ServerCB  OnRoot
+ * @brief ServerCB  OnRoot
  ***********************************************/
 void handleNotFound()
 {
@@ -135,28 +153,30 @@ void handleNotFound()
   LOGN(message);
 }
 
+
 /************************************************
-   @brief ServerCB  On Led Commnad  '/led'
-   Args is state=1/0
+ * @brief ServerCB  On Led Commnad  '/led'
+ * Args is state=1/0
  ***********************************************/
 void handleLed()
 {
   server.send(200, "text/html", html_string);
-  String arg_str = server.arg("state");
-  bool new_led_state = arg_str.toInt();
+  String arg_str       = server.arg("state");
+  bool   new_led_state = arg_str.toInt();
 
   LOGS("led \tstr:", arg_str);
   LOGSN("\tnew_led_state:", new_led_state);
   setLed(new_led_state);
 }
 
+
 /************************************************
-   @brief ServerCB  On GetInfo Commnad  '/getInfo'
-   Returns {'estado_led':1}
+ * @brief ServerCB  On GetInfo Commnad  '/getInfo'
+ * Returns {'estado_led':1}
  ***********************************************/
 void handleGetInfo()
 {
-  String output;
+  String                 output;
   StaticJsonDocument<16> doc;
 
   doc["estado_led"] = estado_led;
@@ -164,8 +184,9 @@ void handleGetInfo()
   server.send(200, "text", output);
 }
 
+
 /************************************************
-    @brief util setLed
+ *  @brief util setLed
  ***********************************************/
 void setLed(bool nuevo_estado)
 {

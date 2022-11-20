@@ -6,10 +6,20 @@
 /************************************************
  *  WiFi Config
  ***********************************************/
-//const char *ssid     = "ELLEBANNA";
-//const char *password = "666LasMonjas";
-const char *ssid     = "iPhone de Carlos";
-const char *password = "marpalcar";
+typedef struct wifiList_s
+{
+  const char *ssid;
+  const char *password;
+} wifiList_t;
+
+#define NUM_WIFIS    2
+wifiList_t wifiList[NUM_WIFIS] PROGMEM =
+{
+  { "CanCarlitos2", "6162909297"         },
+  { "X2",           "LasMonjasVuelan666" }
+  // { "iPhone de Carlos", "marpalcar"  },
+};
+int8_t WiFi_indx = -1;
 
 const char *otaaHostName = "LedWifi";
 
@@ -27,13 +37,80 @@ WiFiEventHandler wifiConnectHandler;
 void onWifiDisconnect(const WiFiEventStationModeDisconnected& event);
 void onWifiConnect(const WiFiEventStationModeGotIP& event);
 
+/*******************************************************************************
+ *  @brief  Escanea los wifis que hay y seleciona el que encuentra
+ ******************************************************************************/
+bool scan_select_wifi()
+{
+  String  ssid;
+  int32_t rssi;
+  uint8_t encryptionType;
+  uint8_t *bssid;
+  int32_t channel;
+  bool    hidden;
+  int     scanResult;
+
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+
+  scanResult = WiFi.scanNetworks(/*async=*/ false, /*hidden=*/ true);
+
+  if (scanResult == 0)
+  {
+    LOGF("No networks found \n");
+    return false;
+  }
+  PRINTF("%d networks found:\n", scanResult);
+
+#if DEBUG == 1
+  for (int8_t i = 0; i < scanResult; i++)
+  {
+    WiFi.getNetworkInfo(i, ssid, encryptionType, rssi, bssid, channel, hidden);
+
+    PRINTF("  %02d: [CH %02d] [%02X:%02X:%02X:%02X:%02X:%02X] %ddBm %c %c %s\n",
+           i,
+           channel,
+           bssid[0], bssid[1], bssid[2],
+           bssid[3], bssid[4], bssid[5],
+           rssi,
+           (encryptionType == ENC_TYPE_NONE) ? ' ' : '*',
+           hidden ? 'H' : 'V',
+           ssid.c_str());
+  }
+#endif
+
+  // Buscar entre wifi list para forzar prioridad
+  for (uint8_t j = 0; j < NUM_WIFIS; j++)
+  {
+    // Print unsorted scan results
+    for (int8_t i = 0; i < scanResult; i++)
+    {
+      WiFi.getNetworkInfo(i, ssid, encryptionType, rssi, bssid, channel, hidden);
+
+      // Buscar si coincide el wifi
+      if (strcmp(wifiList[j].ssid, ssid.c_str()) == 0)
+      {
+        PRINTF("!! WiFi %s found!\n", wifiList[j].ssid);
+        WiFi_indx = j;
+        return true;
+      }
+    }
+
+    delay(0);
+  }
+
+  // Print scan results
+  return false;
+}
+
+
 /************************************************
  *  @brief  Iniciar WiFi
  ***********************************************/
 void setup_wifi()
 {
   LOG("Connecting to ");
-  LOGN(ssid);
+  LOGN(wifiList[WiFi_indx].ssid);
 
   wifiConnectHandler    = WiFi.onStationModeGotIP(onWifiConnect);
   wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
@@ -44,7 +121,7 @@ void setup_wifi()
   //  {
   //    LOGN("STA FAILED TO CONFIGURE");
   //  }
-  WiFi.begin(ssid, password);
+  WiFi.begin(wifiList[WiFi_indx].ssid, wifiList[WiFi_indx].password);
 
 #if DEBUG_LED_ON == 1
   pinMode(LED_BUILTIN, OUTPUT);
