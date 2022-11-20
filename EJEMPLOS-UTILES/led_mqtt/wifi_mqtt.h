@@ -15,12 +15,23 @@ Timer < 1 > timerKeepAlive;
 /*****************************************************************************
 *   WiFi Config
 *****************************************************************************/
-//const char *ssid     = "ELLEBANNA";
-//const char *password = "666LasMonjas";
-const char *ssid     = "CanCarlitos2";
-const char *password = "6162909297";
+typedef struct wifiList_s
+{
+  const char *ssid;
+  const char *password;
+  const char *mqtt_server;
+} wifiList_t;
 
-const char *mqtt_server   = "192.168.1.33";
+int8_t WiFi_indx = -1;
+
+#define NUM_WIFIS    2
+wifiList_t wifiList[NUM_WIFIS] PROGMEM =
+{
+  { "CanCarlitos2", "6162909297",         "192.168.1.44" },
+  { "X2",           "LasMonjasVuelan666", "192.168.1.76" }
+};
+
+
 const char *mqtt_username = "kasbeel";
 const char *mqtt_password = "kasbeel";
 
@@ -65,18 +76,86 @@ void ProcessComando(uint8_t *payload, uint8_t length);
 
 void callback(char *topic, uint8_t *payload, unsigned int length);
 
+/*******************************************************************************
+ *  @brief  Escanea los wifis que hay y seleciona el que encuentra
+ ******************************************************************************/
+bool scan_select_wifi()
+{
+  String  ssid;
+  int32_t rssi;
+  uint8_t encryptionType;
+  uint8_t *bssid;
+  int32_t channel;
+  bool    hidden;
+  int     scanResult;
+
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+
+  scanResult = WiFi.scanNetworks(/*async=*/ false, /*hidden=*/ true);
+
+  if (scanResult == 0)
+  {
+    LOGF("No networks found \n");
+    return false;
+  }
+  PRINTF("%d networks found:\n", scanResult);
+
+#if DEBUG == 1
+  for (int8_t i = 0; i < scanResult; i++)
+  {
+    WiFi.getNetworkInfo(i, ssid, encryptionType, rssi, bssid, channel, hidden);
+
+    PRINTF("  %02d: [CH %02d] [%02X:%02X:%02X:%02X:%02X:%02X] %ddBm %c %c %s\n",
+           i,
+           channel,
+           bssid[0], bssid[1], bssid[2],
+           bssid[3], bssid[4], bssid[5],
+           rssi,
+           (encryptionType == ENC_TYPE_NONE) ? ' ' : '*',
+           hidden ? 'H' : 'V',
+           ssid.c_str());
+  }
+#endif
+
+  // Buscar entre wifi list para forzar prioridad
+  for (uint8_t j = 0; j < NUM_WIFIS; j++)
+  {
+    // Print unsorted scan results
+    for (int8_t i = 0; i < scanResult; i++)
+    {
+      WiFi.getNetworkInfo(i, ssid, encryptionType, rssi, bssid, channel, hidden);
+
+      // Buscar si coincide el wifi
+      if (strcmp(wifiList[j].ssid, ssid.c_str()) == 0)
+      {
+        PRINTF("!! WiFi %s found!\n", wifiList[j].ssid);
+        WiFi_indx = j;
+        return true;
+      }
+    }
+
+    delay(0);
+  }
+
+  // Print scan results
+  return false;
+}
+
+
 /*****************************************************************************
 *  @brief  Iniciar WiFi
 *****************************************************************************/
 void setup_wifi()
 {
-  LOGSN("Connecting to ", ssid);
+  LOGSN("Connecting to ", wifiList[WiFi_indx].ssid);
 
   wifiConnectHandler    = WiFi.onStationModeGotIP(onWifiConnect);
   wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(wifiList[WiFi_indx].ssid, wifiList[WiFi_indx].password);
+  // WiFi.begin("CanCarlitos2", "6162909297");
 
 #if DEBUG_LED_ON == 1
   pinMode(LED_BUILTIN, OUTPUT);
@@ -107,8 +186,6 @@ void setup_wifi()
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
 
-
-
   /* Reconectar Automaticamente si falla! */
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
@@ -127,7 +204,8 @@ void onWifiConnect(const WiFiEventStationModeGotIP& event)
   LOGSN("\nWiFiConnected. Ip Address:  ", WiFi.localIP());
 
   /* Setup MQTT */
-  client.setServer(mqtt_server, 1883);
+  // client.setServer("192.168.1.44", 1883);
+  client.setServer(wifiList[WiFi_indx].mqtt_server, 1883);
   client.setCallback(callback);
 }
 

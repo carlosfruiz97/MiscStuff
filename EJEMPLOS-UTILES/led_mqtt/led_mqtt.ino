@@ -1,8 +1,7 @@
 /*******************************************************************************
  *  Titulo: Controlar un led con MQTT
- *
  * Placa: Nodmecu
- * Descripcion:
+ * cmpUpldEsp.sh -f led_mqtt.ino
  *
  * Subir Codigo:
  *     arduino-cli compile --fqbn esp8266:esp8266:nodemcuv2 led_mqtt.ino
@@ -20,10 +19,9 @@
 #define LOGSN(s, x)       { Serial.print(F(s)); Serial.print(" "); Serial.println(x); }
 #define LOGS(s, x)        { Serial.print(F(s)); Serial.print(" "); Serial.print(x); }
 #define LOGSX(s, x)       { Serial.print(F(s)); Serial.print(" "); Serial.print(x, HEX); }
-#define PRINTF(s, ...)    { Serial.printf(s, __VA_ARGS__); }
 #define LOGF(s)           Serial.print(F(s))
 #define LOGFN(s)          Serial.println(F(s))
-#define PRINTF(s, ...)    { Serial.printf(s, __VA_ARGS__); }
+#define PRINTF(s, ...)    Serial.printf(PSTR(s), __VA_ARGS__)
 #else
 #define LOG(x)
 #define LOGN(x)
@@ -31,9 +29,9 @@
 #define LOGSN(s, x)
 #define LOGS(s, x)
 #define LOGSX(s, x)
-#define PRINTF(s, ...)
 #define LOGF(s)
 #define LOGFN(s)
+#define PRINTF(s, ...)
 #endif
 
 /************************************************
@@ -97,6 +95,7 @@ void setup()
 
   ////////////////////////////
   // Setup WiFi
+  scan_select_wifi();
   setup_wifi();
 }
 
