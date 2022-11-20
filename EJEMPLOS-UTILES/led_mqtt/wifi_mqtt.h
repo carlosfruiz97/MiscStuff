@@ -314,12 +314,17 @@ void ProcessComando(uint8_t *payload, uint8_t length)
   }
 
   /* Extraer valores de JSON */
-  uint8_t led = doc["led"];
 
-  PRINTF("Comando: Led [%d] \n", led);
+  // Check if led
+  JsonVariant jvLed = doc["led"];
+  if (!jvLed.isNull())
+  {
+    uint8_t led = jvLed.as < uint8_t > ();
+    PRINTF("Comando: Led [%d] \n", led);
 
-  /* Ejecutar comando  */
-  setLed(led);
+    /* Ejecutar comando  */
+    setLed(led);
+  }
 
   /* Publicamos estado actualizado */
   publicar_estado();
