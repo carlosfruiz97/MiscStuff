@@ -57,7 +57,7 @@
 /************************************************
  *  GPIO
  ***********************************************/
-#define PIN_LED       LED_BUILTIN
+#define PIN_LED       2
 bool estado_led = false;
 #define ACTIVE_LED    LOW
 void setLed(bool nuevo_estado);
@@ -125,7 +125,7 @@ void setup_server()
 void handleRoot()
 {
   server.send(200, "text/html", html_string);
-  LOGN("\n[server] Handle Root");
+  LOGFN("\n[server] Handle Root");
 }
 
 
@@ -134,23 +134,23 @@ void handleRoot()
  ***********************************************/
 void handleNotFound()
 {
-  String message = "File Not Found\n\n";
-
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i = 0; i < server.args(); i++)
-  {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  // server.send(404, "text/plain", message);
-  server.send(200, "text/html", html_string);
-  LOGN("\n[server] Request not found");
-  LOGN(message);
+//  String message = "File Not Found\n\n";
+//
+//  message += "URI: ";
+//  message += server.uri();
+//  message += "\nMethod: ";
+//  message += (server.method() == HTTP_GET) ? "GET" : "POST";
+//  message += "\nArguments: ";
+//  message += server.args();
+//  message += "\n";
+//  for (uint8_t i = 0; i < server.args(); i++)
+//  {
+//    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+//  }
+//  // server.send(404, "text/plain", message);
+//  server.send(200, "text/html", html_string);
+//  LOGN("\n[server] Request not found");
+//  LOGN(message);
 }
 
 
