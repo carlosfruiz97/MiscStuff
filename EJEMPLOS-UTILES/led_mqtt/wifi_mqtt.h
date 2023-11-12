@@ -5,10 +5,10 @@
 #define TIMEOUT_WIFI           60000 //ms
 #define RESTART_ON_TIMEOUT     1     // Restart on timeout while connecting?
 
-#define DEBUG_LED_ON           1     // Se enciende el LED_BUILTIN
+#define DEBUG_LED_ON           0     // Se enciende el LED_BUILTIN
 
 /***** Timer de Keepalive *****************************************************/
-#define KEEP_ALIVE_INTERVAL    15 * 1000
+#define KEEP_ALIVE_INTERVAL    5 * 1000
 Timer < 1 > timerKeepAlive;
 
 

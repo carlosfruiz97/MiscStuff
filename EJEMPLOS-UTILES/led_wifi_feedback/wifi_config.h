@@ -1,5 +1,5 @@
 #define TIMEOUT_WIFI    60000 //ms
-#define DEBUG_LED_ON    1     // Se enciende el LED_BUILTIN
+#define DEBUG_LED_ON    0     // Se enciende el LED_BUILTIN
 
 
 
@@ -117,10 +117,10 @@ void setup_wifi()
 
 
   WiFi.mode(WIFI_STA);
-  //  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
-  //  {
-  //    LOGN("STA FAILED TO CONFIGURE");
-  //  }
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  {
+    LOGN("STA FAILED TO CONFIGURE");
+  }
   WiFi.begin(wifiList[WiFi_indx].ssid, wifiList[WiFi_indx].password);
 
 #if DEBUG_LED_ON == 1
@@ -164,7 +164,7 @@ void setup_wifi()
  ***********************************************/
 void onWifiConnect(const WiFiEventStationModeGotIP& event)
 {
-  LOGN("Reconected!");
+  LOGFN("Reconected!");
 }
 
 
@@ -200,11 +200,11 @@ void setup_otaa()
     }
 
     // NOTE: if updating FS this would be the place to unmount FS using FS.end()
-    LOGN("Start updating " + type);
+//    LOGN("Start updating " + type);
   });
 
   ArduinoOTA.onEnd([] () {
-    LOGN("\nEnd");
+//    LOGN("\nEnd");
   });
 
   ArduinoOTA.onProgress([] (unsigned int progress, unsigned int total) {
@@ -216,23 +216,23 @@ void setup_otaa()
     PRINTF("Error[%u]: ", error);
     if (error == OTA_AUTH_ERROR)
     {
-      LOGN("Auth Failed");
+//      LOGN("Auth Failed");
     }
     else if (error == OTA_BEGIN_ERROR)
     {
-      LOGN("Begin Failed");
+//      LOGN("Begin Failed");
     }
     else if (error == OTA_CONNECT_ERROR)
     {
-      LOGN("Connect Failed");
+//      LOGN("Connect Failed");
     }
     else if (error == OTA_RECEIVE_ERROR)
     {
-      LOGN("Receive Failed");
+//      LOGN("Receive Failed");
     }
     else if (error == OTA_END_ERROR)
     {
-      LOGN("End Failed");
+//      LOGN("End Failed");
     }
   });
 

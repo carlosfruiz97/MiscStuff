@@ -11,7 +11,7 @@
  *
  ******************************************************************************/
 
-#define DEBUG    1
+#define DEBUG    0
 #if DEBUG == 1
 #define LOGN(x)           Serial.println(x)
 #define LOG(x)            Serial.print(x)
@@ -50,8 +50,8 @@
 /************************************************
  *  GPIO
  ***********************************************/
-#define PIN_LED       LED_BUILTIN
-#define ACTIVE_LED    LOW
+#define PIN_LED       0
+#define ACTIVE_LED    HIGH
 
 /************************************************
  *  Estado
